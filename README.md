@@ -10,8 +10,7 @@ licence. All contributions are welcome.
 bower install tags-input-form
 ```
 
-After bower install, just download the following git repository (or zip) and add
-this folling lines :
+After bower install, add theses following lines :
 
 ```html
 <link rel="stylesheet" href="path/to/tags-input/dist/css/tags-input.min.css" />
