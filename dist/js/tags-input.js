@@ -32,11 +32,16 @@
 
     Tag.prototype.options = null;
 
+    Tag.prototype.requestInstances = [];
+
     Tag.prototype.defaultOptions = {
       tooltip: true,
       tooltipText: "Right click to delete",
       formSeparator: ",",
-      nextTagCodes: [13, 188]
+      nextTagCodes: [13, 188],
+      autocomplete: null,
+      autofield: "value",
+      autolimit: 5
     };
 
     function Tag(element1, options1) {
@@ -86,7 +91,7 @@
       ref = this.options;
       for (key in ref) {
         property = ref[key];
-        if (!options[key]) {
+        if (options[key] === 'undefined') {
           throw "`" + key + "` options doesn't exist";
         }
         options[key] = property;
@@ -126,11 +131,27 @@
         var ref;
         if (ref = event.keyCode, indexOf.call(that.options.nextTagCodes, ref) >= 0) {
           event.preventDefault();
+          that.clearRequests();
           if (tag.firstChild.innerHTML) {
             that.createTag();
             return false;
           }
         }
+      });
+      tag.firstChild.addEventListener("input", function(event) {
+        if (!that.options.autocomplete) {
+          return;
+        }
+        if (tag.firstChild.innerHTML.length % 3 !== 3 - 1) {
+          return;
+        }
+        if (this.timer) {
+          clearTimeout(this.timer);
+        }
+        this.timer = setTimeout(function() {
+          return that.requestTerm(tag);
+        }, 200);
+        return false;
       });
       return tag.addEventListener("contextmenu", function(event) {
         event.preventDefault();
@@ -142,6 +163,94 @@
 
     Tag.prototype.createFocus = function(tag) {
       return tag.firstChild.focus();
+    };
+
+    Tag.prototype.requestTerm = function(tag) {
+      var request, that, value;
+      that = this;
+      value = tag.firstChild.innerHTML;
+      this.clearRequests();
+      request = new XMLHttpRequest();
+      request.open("GET", this.options["autocomplete"] + "?q=" + value, true);
+      request.addEventListener("readystatechange", function(event) {
+        var data, e, previous, range, response, selection, term;
+        response = event.target;
+        if (response.readyState !== 4 || response.status !== 200) {
+          return;
+        }
+        if (response.readyState === 4) {
+          if (response.status === 200) {
+            data = JSON.parse(response.responseText);
+            term = that.autocomplete(data, value);
+            term = term.slice(0, 1);
+            term = term[0];
+            previous = tag.firstChild.innerHTML;
+            tag.firstChild.innerHTML = term;
+            try {
+              range = document.createRange();
+              range.setStart(tag.firstChild.firstChild, previous.length);
+              range.setEnd(tag.firstChild.firstChild, term.length);
+              selection = window.getSelection();
+              selection.removeAllRanges();
+              return selection.addRange(range);
+            } catch (_error) {
+              e = _error;
+            }
+          }
+        }
+      });
+      request.send(null);
+      return this.requestInstances.push(request);
+    };
+
+    Tag.prototype.clearRequests = function() {
+      var i, instance, len, ref, results;
+      if (this.requestInstances.length > 0) {
+        ref = this.requestInstances;
+        results = [];
+        for (i = 0, len = ref.length; i < len; i++) {
+          instance = ref[i];
+          instance.abort();
+          instance.removeEventListener("readystatechange");
+          results.push(this.requestInstances.slice(this.requestInstances.indexOf(instance), 1));
+        }
+        return results;
+      }
+    };
+
+    Tag.prototype.searchTerm = function(value, search) {
+      var found, key, list, term;
+      list = [];
+      for (key in value) {
+        term = value[key];
+        if (term instanceof Object) {
+          found = this.searchTerm(term, search);
+          if (found.length) {
+            list = list.concat(found);
+          }
+        }
+        if (key !== this.options.autofield) {
+          continue;
+        }
+        list = list.concat(term);
+      }
+      return list;
+    };
+
+    Tag.prototype.autocomplete = function(values, search) {
+      var key, terms, value;
+      if (!values || !search) {
+        return;
+      }
+      terms = [];
+      for (key in values) {
+        value = values[key];
+        if (!(value instanceof Array)) {
+          continue;
+        }
+        terms = terms.concat(this.searchTerm(value, search));
+      }
+      return terms.slice(0, this.options.autolimit);
     };
 
     Tag.prototype.fillInput = function() {

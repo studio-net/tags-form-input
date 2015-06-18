@@ -25,11 +25,16 @@
 window.Tag = class Tag
 	element : null
 	options : null
-	defaultOptions :
+	requestInstances : []
+
+	defaultOptions   :
 		tooltip       : true
 		tooltipText   : "Right click to delete"
 		formSeparator : ","
 		nextTagCodes  : [13, 188] # ENTER and COMMA
+		autocomplete  : null
+		autofield     : "value"
+		autolimit     : 5
 
 	constructor : (@element, @options) ->
 		that = @
@@ -82,7 +87,7 @@ window.Tag = class Tag
 			return options
 
 		for key, property of @options
-			if not options[key]
+			if options[key] is 'undefined'
 				throw "`#{key}` options doesn't exist"
 
 			options[key] = property
@@ -135,12 +140,24 @@ window.Tag = class Tag
 			# On ENTER key or COMMA key
 			if event.keyCode in that.options.nextTagCodes
 				event.preventDefault()
+				that.clearRequests()
 
 				# Prevent from multiple creations and suppressions
 				if tag.firstChild.innerHTML
 					that.createTag()
 
 					return false
+
+		# On content editable change
+		tag.firstChild.addEventListener "input", (event) ->
+			return if not that.options.autocomplete
+			return if tag.firstChild.innerHTML.length % 3 isnt 3 - 1
+			clearTimeout @timer if @timer
+
+			@timer = setTimeout ->
+				that.requestTerm tag
+			, 200
+			return false
 
 		# Delete a tag on right click on it
 		tag.addEventListener "contextmenu", (event) ->
@@ -152,6 +169,75 @@ window.Tag = class Tag
 
 	createFocus : (tag) ->
 		tag.firstChild.focus()
+
+	requestTerm : (tag) ->
+		that  = @
+		value = tag.firstChild.innerHTML
+		@clearRequests()
+
+		request = new XMLHttpRequest()
+		request.open "GET", "#{@options["autocomplete"]}?q=#{value}", true
+		request.addEventListener "readystatechange", (event) ->
+			response = event.target
+			return if response.readyState isnt 4 or response.status isnt 200
+
+			if response.readyState is 4
+				if response.status is 200
+					data = JSON.parse response.responseText
+					term = that.autocomplete data, value
+					term = term.slice 0, 1
+					term = term[0]
+
+					previous = tag.firstChild.innerHTML
+					tag.firstChild.innerHTML = term
+
+					try
+						range = document.createRange()
+						range.setStart tag.firstChild.firstChild, previous.length
+						range.setEnd   tag.firstChild.firstChild, term.length
+
+						selection = window.getSelection()
+						selection.removeAllRanges()
+						selection.addRange range
+					catch e
+
+		request.send null
+		@requestInstances.push request
+
+	clearRequests : ->
+		# Abort all existing instances of XMLHttpRequest
+		if @requestInstances.length > 0
+			for instance in @requestInstances
+				instance.abort()
+				instance.removeEventListener "readystatechange"
+
+				@requestInstances.slice @requestInstances.indexOf(instance), 1
+
+	searchTerm : (value, search) ->
+		list = []
+
+		for key, term of value
+
+			if term instanceof Object
+				found = @searchTerm term, search
+				list  = list.concat found if found.length
+
+			continue if key isnt @options.autofield
+			# FIXME Use REGEX here with unicode
+
+			list = list.concat term
+
+		return list
+
+	autocomplete : (values, search) ->
+		return if not values or not search
+		terms = []
+
+		for key, value of values
+			continue if value not instanceof Array
+			terms = terms.concat @searchTerm(value, search)
+
+		return terms.slice 0, @options.autolimit
 
 	fillInput : ->
 		# Fill the given input (element) with tags
