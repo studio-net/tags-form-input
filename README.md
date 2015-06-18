@@ -7,7 +7,7 @@ licence. All contributions are welcome.
 ## Installation
 
 ```bash
-bower install tags-input-form
+bower install tags-form-input
 ```
 
 After bower install, add theses following lines :
