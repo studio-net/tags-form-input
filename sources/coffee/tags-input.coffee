@@ -65,6 +65,16 @@ window.Tag = class Tag
 
 			event.preventDefault()
 
+		# Get existing values
+		tags = @element.getAttribute "value"
+		return if not tags
+
+		for tag in tags.split @options.formSeparator
+			@createTag tag
+
+		# Blur the last tag
+		@container.lastChild.firstChild.blur()
+
 	configureOptions : () ->
 		options = @defaultOptions
 
@@ -79,7 +89,7 @@ window.Tag = class Tag
 
 		return options
 
-	createTag : ->
+	createTag : (value) ->
 		that = @
 
 		# Create a container of our tag
@@ -91,6 +101,7 @@ window.Tag = class Tag
 		content = document.createElement "span"
 		content.classList.add "tag-content"
 		content.contentEditable = true
+		content.innerHTML = value if value
 
 		# Append the content into the tag and the whole into the global
 		# container

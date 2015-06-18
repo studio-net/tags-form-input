@@ -2,7 +2,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2015 - Cyril Mizzi <cyril@lesiteimmo.com>
+ * Copyright (c) 2015 - Studionet
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,7 @@
     };
 
     function Tag(element1, options1) {
-      var that;
+      var i, len, ref, tag, tags, that;
       this.element = element1;
       this.options = options1;
       that = this;
@@ -65,6 +65,16 @@
         }
         return event.preventDefault();
       });
+      tags = this.element.getAttribute("value");
+      if (!tags) {
+        return;
+      }
+      ref = tags.split(this.options.formSeparator);
+      for (i = 0, len = ref.length; i < len; i++) {
+        tag = ref[i];
+        this.createTag(tag);
+      }
+      this.container.lastChild.firstChild.blur();
     }
 
     Tag.prototype.configureOptions = function() {
@@ -84,7 +94,7 @@
       return options;
     };
 
-    Tag.prototype.createTag = function() {
+    Tag.prototype.createTag = function(value) {
       var content, tag, that, tooltip;
       that = this;
       tag = document.createElement("li");
@@ -93,6 +103,9 @@
       content = document.createElement("span");
       content.classList.add("tag-content");
       content.contentEditable = true;
+      if (value) {
+        content.innerHTML = value;
+      }
       tag.appendChild(content);
       this.container.appendChild(tag);
       if (this.options.tooltip) {
