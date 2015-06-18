@@ -1,16 +1,10 @@
 {
-  "name": "tags-input",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "directories": {
-    "example": "examples"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "ISC",
+  "name": "tags-form-input",
+  "version": "0.0.1",
+  "description": "Replace input by a tags input",
+  "main": "dist/js/tags-input.js",
+  "author": "Cyril Mizzi <cyril@lesiteimmo.com>",
+  "license": "MIT",
   "devDependencies": {
     "autoprefixer": "^5.2.0",
     "autoprefixer-core": "^5.2.0",
