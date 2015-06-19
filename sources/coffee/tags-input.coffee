@@ -31,10 +31,10 @@ window.Tag = class Tag
 		tooltip       : true
 		tooltipText   : "Right click to delete"
 		formSeparator : ","
-		nextTagCodes  : [13, 188] # ENTER and COMMA
+		nextTagCodes  : [13, 188, 9] # ENTER, COMMA and TAB
 		autocomplete  : null
 		autofield     : "value"
-		autolimit     : 5
+		automin       : 5
 
 	constructor : (@element, @options) ->
 		that = @
@@ -88,7 +88,7 @@ window.Tag = class Tag
 
 		for key, property of @options
 			if options[key] is 'undefined'
-				throw "`#{key}` options doesn't exist"
+				throw "`#{key}` option doesn't exist"
 
 			options[key] = property
 
@@ -126,9 +126,8 @@ window.Tag = class Tag
 
 		tag.firstChild.addEventListener "blur", ->
 			# Remove on empty content
-			if not tag.firstChild.innerHTML
-				tag.remove()
-
+			if not @innerHTML
+				@parent.remove()
 				return
 
 			that.fillInput()
@@ -150,14 +149,17 @@ window.Tag = class Tag
 
 		# On content editable change
 		tag.firstChild.addEventListener "input", (event) ->
-			return if not that.options.autocomplete
-			return if tag.firstChild.innerHTML.length % 3 isnt 3 - 1
-			clearTimeout @timer if @timer
+			min = that.options.automin
+			sessionStorage.setItem "tags-input-value", @innerHTML
 
-			@timer = setTimeout ->
+			return if not that.options.autocomplete
+			return if @innerHTML.length % 2 isnt 1 or @innerHTML.length < min
+			clearTimeout that.timer
+			that.clearRequests()
+
+			that.timer = setTimeout ->
 				that.requestTerm tag
-			, 200
-			return false
+			, 500
 
 		# Delete a tag on right click on it
 		tag.addEventListener "contextmenu", (event) ->
@@ -173,10 +175,10 @@ window.Tag = class Tag
 	requestTerm : (tag) ->
 		that  = @
 		value = tag.firstChild.innerHTML
-		@clearRequests()
 
-		request = new XMLHttpRequest()
-		request.open "GET", "#{@options["autocomplete"]}?q=#{value}", true
+		permalink = @options.autocomplete.replace "%search%", value
+		request   = new XMLHttpRequest()
+		request.open "GET", permalink, true
 		request.addEventListener "readystatechange", (event) ->
 			response = event.target
 			return if response.readyState isnt 4 or response.status isnt 200
@@ -185,16 +187,21 @@ window.Tag = class Tag
 				if response.status is 200
 					data = JSON.parse response.responseText
 					term = that.autocomplete data, value
-					term = term.slice 0, 1
 					term = term[0]
 
-					previous = tag.firstChild.innerHTML
-					tag.firstChild.innerHTML = term
+					return if term is undefined
+
+					value = sessionStorage.getItem "tags-input-value"
+					term  = term.substr value.length
+					child = tag.firstChild
+
+					child.innerHTML = child.innerHTML + term
 
 					try
+						# Create selection on added content
 						range = document.createRange()
-						range.setStart tag.firstChild.firstChild, previous.length
-						range.setEnd   tag.firstChild.firstChild, term.length
+						range.setStart child.firstChild, value.length
+						range.setEnd   child.firstChild, value.length + term.length
 
 						selection = window.getSelection()
 						selection.removeAllRanges()
@@ -223,8 +230,6 @@ window.Tag = class Tag
 				list  = list.concat found if found.length
 
 			continue if key isnt @options.autofield
-			# FIXME Use REGEX here with unicode
-
 			list = list.concat term
 
 		return list
@@ -237,7 +242,7 @@ window.Tag = class Tag
 			continue if value not instanceof Array
 			terms = terms.concat @searchTerm(value, search)
 
-		return terms.slice 0, @options.autolimit
+		return terms.slice 0, 1
 
 	fillInput : ->
 		# Fill the given input (element) with tags
@@ -254,4 +259,6 @@ window.Tag = class Tag
 		for element in elements
 			new Tag element, options
 
-new Tag.guess document.querySelectorAll("[data-role=tagsinput]")
+new Tag.guess document.querySelectorAll("[data-role=tagsinput]"),
+	autocomplete : "http://photon.komoot.de/api?q=%search%"
+	autofield    : "name"

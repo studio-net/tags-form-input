@@ -1,3 +1,4 @@
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 
 /*
  * The MIT License (MIT)
@@ -38,10 +39,10 @@
       tooltip: true,
       tooltipText: "Right click to delete",
       formSeparator: ",",
-      nextTagCodes: [13, 188],
+      nextTagCodes: [13, 188, 9],
       autocomplete: null,
       autofield: "value",
-      autolimit: 5
+      automin: 5
     };
 
     function Tag(element1, options1) {
@@ -139,19 +140,20 @@
         }
       });
       tag.firstChild.addEventListener("input", function(event) {
+        var min;
+        min = that.options.automin;
+        sessionStorage.setItem("tags-input-value", this.innerHTML);
         if (!that.options.autocomplete) {
           return;
         }
-        if (tag.firstChild.innerHTML.length % 3 !== 3 - 1) {
+        if (this.innerHTML.length % 2 !== 1 || this.innerHTML.length < min) {
           return;
         }
-        if (this.timer) {
-          clearTimeout(this.timer);
-        }
-        this.timer = setTimeout(function() {
+        clearTimeout(that.timer);
+        that.clearRequests();
+        return that.timer = setTimeout(function() {
           return that.requestTerm(tag);
-        }, 200);
-        return false;
+        }, 500);
       });
       return tag.addEventListener("contextmenu", function(event) {
         event.preventDefault();
@@ -166,14 +168,14 @@
     };
 
     Tag.prototype.requestTerm = function(tag) {
-      var request, that, value;
+      var permalink, request, that, value;
       that = this;
       value = tag.firstChild.innerHTML;
-      this.clearRequests();
+      permalink = this.options.autocomplete.replace("%search%", value);
       request = new XMLHttpRequest();
-      request.open("GET", this.options["autocomplete"] + "?q=" + value, true);
+      request.open("GET", permalink, true);
       request.addEventListener("readystatechange", function(event) {
-        var data, e, previous, range, response, selection, term;
+        var child, data, e, range, response, selection, term;
         response = event.target;
         if (response.readyState !== 4 || response.status !== 200) {
           return;
@@ -182,14 +184,18 @@
           if (response.status === 200) {
             data = JSON.parse(response.responseText);
             term = that.autocomplete(data, value);
-            term = term.slice(0, 1);
             term = term[0];
-            previous = tag.firstChild.innerHTML;
-            tag.firstChild.innerHTML = term;
+            if (term === void 0) {
+              return;
+            }
+            value = sessionStorage.getItem("tags-input-value");
+            term = term.substr(value.length);
+            child = tag.firstChild;
+            child.innerHTML = child.innerHTML + term;
             try {
               range = document.createRange();
-              range.setStart(tag.firstChild.firstChild, previous.length);
-              range.setEnd(tag.firstChild.firstChild, term.length);
+              range.setStart(child.firstChild, value.length);
+              range.setEnd(child.firstChild, value.length + term.length);
               selection = window.getSelection();
               selection.removeAllRanges();
               return selection.addRange(range);
@@ -250,7 +256,7 @@
         }
         terms = terms.concat(this.searchTerm(value, search));
       }
-      return terms.slice(0, this.options.autolimit);
+      return terms.slice(0, 1);
     };
 
     Tag.prototype.fillInput = function() {
@@ -278,6 +284,11 @@
 
   })();
 
-  new Tag.guess(document.querySelectorAll("[data-role=tagsinput]"));
+  new Tag.guess(document.querySelectorAll("[data-role=tagsinput]"), {
+    autocomplete: "http://photon.komoot.de/api?q=%search%",
+    autofield: "name"
+  });
 
 }).call(this);
+
+},{}]},{},[1])

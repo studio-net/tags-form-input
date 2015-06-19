@@ -28,6 +28,17 @@ you want tags-input work (HTML5 API selector) :
 
 ```javascript
 new Tag.guess(document.querySelectorAll("your-element"))
+
+// Defaults options
+new Tag.guess(document.querySelectorAll("your-element"), {
+	tooltip       : true,
+	tooltipText   : "Right click to delete",
+	formSeparator : ','
+	nextTagCodes  : [13, 188, 9],
+	autocomplete  : null,
+	autofield     : "value",
+	automin       : 3
+})
 ```
 
 That's all! It's pretty simple.
@@ -35,11 +46,27 @@ That's all! It's pretty simple.
 ### Options
 This is the list of all availabled options :
 
-- `tooltip` `bool`: Show a tooltip on tag fly (default is : true)
-- `tooltipText` `string`: Message in tooltip (default is : "Right click to delete")
-- `formSeparator` `char`: Default separator on real form field
-- `nextTagCodes` `array`: List of characters that create a new tag (default is
-  [13, 88] - ENTER and COMMA)
+- `(bool)   tooltip      `: Show a tooltip on tag fly (default is : true)
+- `(string) tooltipText  `: Message in tooltip (default is : "Right click to delete")
+- `(char)   formSeparator`: Default separator on real form field
+- `(array)  nextTagCodes `: List of characters that create a new tag (default is
+  [13, 88, 9] - ENTER, COMMA and TAB)
+- `(string) autocomplete `: URL to autocomplete : the URL must provide a
+  `%search` content in order to replace by the value
+- `(string) autofield    `: The field used by autocomplete
+- `(int)    autolimit    `: Minimum-character before starts autocomplete
+
+### Example
+
+```
+new Tag.guess(document.querySelectorAll("[data-role=tagsinput]"), {
+	tooltip       : false,
+	nextTagCodes  : [13, 188, 9],
+	autocomplete  : "http://photon.komoot.de/api?q=%search%",
+	autofield     : "value",
+	automin       : 2
+})
+```
 
 ## What's next ?
 
