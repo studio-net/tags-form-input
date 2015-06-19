@@ -1,6 +1,6 @@
-## What is Tags-Input ?
+## What is Tags-FormInput ?
 
-Tags-Input is a simple Javascript module that convert all corresponding input
+Tags-FormInput is a simple Javascript module that convert all corresponding input
 form to a tags list input. It's completely open source and is running under MIT
 licence. All contributions are welcome.
 
@@ -19,15 +19,15 @@ After bower install, add theses following lines :
 
 ## How to use
 
-Tags-Input is written in pure JS. There's no dependency. By default, the script
-will find every input with a `data-role="tagsinput"` and affect them to be
-tags-inputed but you can also use it on differents elements.
+Tags-FormInput is written in pure JS. There's no dependency. By default, the
+script will find every input with a `data-role="tagsinput"` and affect them to
+be tags-inputed but you can also use it on differents elements.
 
 Once you've load the javascript file, you just have to write where
 you want tags-input work (HTML5 API selector) :
 
 ```javascript
-new Tag.guess document.querySelectorAll("your-element")
+new Tag.guess(document.querySelectorAll("your-element"))
 ```
 
 That's all! It's pretty simple.
@@ -35,10 +35,10 @@ That's all! It's pretty simple.
 ### Options
 This is the list of all availabled options :
 
-- `tooltip` bool      : Show a tooltip on tag fly (default is : true)
-- `tooltipText` string: Message in tooltip (default is : "Right click to delete")
-- `formSeparator` char: Default separator on real form field
-- `nextTagCodes` array: List of characters that create a new tag (default is
+- `tooltip` `bool`: Show a tooltip on tag fly (default is : true)
+- `tooltipText` `string`: Message in tooltip (default is : "Right click to delete")
+- `formSeparator` `char`: Default separator on real form field
+- `nextTagCodes` `array`: List of characters that create a new tag (default is
   [13, 88] - ENTER and COMMA)
 
 ## What's next ?
