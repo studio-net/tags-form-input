@@ -25,6 +25,7 @@
 window.Tag = class Tag
 	element : null
 	options : null
+	deleted : false
 	requestInstances : []
 
 	defaultOptions   :
@@ -139,7 +140,9 @@ window.Tag = class Tag
 			# On ENTER key or COMMA key
 			if event.keyCode in that.options.nextTagCodes
 				event.preventDefault()
-				that.clearRequests()
+
+				value = sessionStorage.getItem "tags-input-autocomplete"
+				@firstChild.innerHTML = value if value
 
 				# Prevent from multiple creations and suppressions
 				if @firstChild.innerHTML
@@ -151,10 +154,13 @@ window.Tag = class Tag
 			min = that.options.automin
 			sessionStorage.setItem "tags-input-value", @innerHTML
 
+			range = window.getSelection().getRangeAt 0
+			that.clearRequests()
+
 			return if not that.options.autocomplete
 			return if @innerHTML.length % 2 isnt 1 or @innerHTML.length < min
+			return if range.startOffset isnt @innerHTML.length
 			clearTimeout that.timer
-			that.clearRequests()
 
 			that.timer = setTimeout =>
 				that.requestTerm @parentNode
@@ -191,10 +197,12 @@ window.Tag = class Tag
 					return if term is undefined
 
 					value = sessionStorage.getItem "tags-input-value"
+					sessionStorage.setItem "tags-input-autocomplete", term
+
 					term  = term.substr value.length
 					child = tag.firstChild
 
-					child.innerHTML = child.innerHTML + term
+					child.innerHTML = child.innerHTML + term.toLowerCase()
 
 					try
 						# Create selection on added content

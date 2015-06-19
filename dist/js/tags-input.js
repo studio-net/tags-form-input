@@ -32,6 +32,8 @@
 
     Tag.prototype.options = null;
 
+    Tag.prototype.deleted = false;
+
     Tag.prototype.requestInstances = [];
 
     Tag.prototype.defaultOptions = {
@@ -131,7 +133,10 @@
         var ref;
         if (ref = event.keyCode, indexOf.call(that.options.nextTagCodes, ref) >= 0) {
           event.preventDefault();
-          that.clearRequests();
+          value = sessionStorage.getItem("tags-input-autocomplete");
+          if (value) {
+            this.firstChild.innerHTML = value;
+          }
           if (this.firstChild.innerHTML) {
             that.createTag();
             return false;
@@ -139,17 +144,21 @@
         }
       });
       tag.firstChild.addEventListener("input", function(event) {
-        var min;
+        var min, range;
         min = that.options.automin;
         sessionStorage.setItem("tags-input-value", this.innerHTML);
+        range = window.getSelection().getRangeAt(0);
+        that.clearRequests();
         if (!that.options.autocomplete) {
           return;
         }
         if (this.innerHTML.length % 2 !== 1 || this.innerHTML.length < min) {
           return;
         }
+        if (range.startOffset !== this.innerHTML.length) {
+          return;
+        }
         clearTimeout(that.timer);
-        that.clearRequests();
         return that.timer = setTimeout((function(_this) {
           return function() {
             return that.requestTerm(_this.parentNode);
@@ -190,9 +199,10 @@
               return;
             }
             value = sessionStorage.getItem("tags-input-value");
+            sessionStorage.setItem("tags-input-autocomplete", term);
             term = term.substr(value.length);
             child = tag.firstChild;
-            child.innerHTML = child.innerHTML + term;
+            child.innerHTML = child.innerHTML + term.toLowerCase();
             try {
               range = document.createRange();
               range.setStart(child.firstChild, value.length);
