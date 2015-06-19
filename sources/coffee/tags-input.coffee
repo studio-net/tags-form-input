@@ -127,7 +127,7 @@ window.Tag = class Tag
 		tag.firstChild.addEventListener "blur", ->
 			# Remove on empty content
 			if not @innerHTML
-				@parent.remove()
+				@parentNode.remove()
 				return
 
 			that.fillInput()
@@ -142,9 +142,8 @@ window.Tag = class Tag
 				that.clearRequests()
 
 				# Prevent from multiple creations and suppressions
-				if tag.firstChild.innerHTML
+				if @firstChild.innerHTML
 					that.createTag()
-
 					return false
 
 		# On content editable change
@@ -157,16 +156,16 @@ window.Tag = class Tag
 			clearTimeout that.timer
 			that.clearRequests()
 
-			that.timer = setTimeout ->
-				that.requestTerm tag
+			that.timer = setTimeout =>
+				that.requestTerm @parentNode
 			, 500
 
 		# Delete a tag on right click on it
 		tag.addEventListener "contextmenu", (event) ->
-			event.preventDefault()
-			tag.remove()
+			@remove()
 			that.fillInput()
 
+			event.preventDefault()
 			return false
 
 	createFocus : (tag) ->

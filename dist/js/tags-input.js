@@ -1,4 +1,3 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 
 /*
  * The MIT License (MIT)
@@ -93,7 +92,7 @@
       for (key in ref) {
         property = ref[key];
         if (options[key] === 'undefined') {
-          throw "`" + key + "` options doesn't exist";
+          throw "`" + key + "` option doesn't exist";
         }
         options[key] = property;
       }
@@ -122,8 +121,8 @@
       }
       this.createFocus(tag);
       tag.firstChild.addEventListener("blur", function() {
-        if (!tag.firstChild.innerHTML) {
-          tag.remove();
+        if (!this.innerHTML) {
+          this.parentNode.remove();
           return;
         }
         return that.fillInput();
@@ -133,7 +132,7 @@
         if (ref = event.keyCode, indexOf.call(that.options.nextTagCodes, ref) >= 0) {
           event.preventDefault();
           that.clearRequests();
-          if (tag.firstChild.innerHTML) {
+          if (this.firstChild.innerHTML) {
             that.createTag();
             return false;
           }
@@ -151,14 +150,16 @@
         }
         clearTimeout(that.timer);
         that.clearRequests();
-        return that.timer = setTimeout(function() {
-          return that.requestTerm(tag);
-        }, 500);
+        return that.timer = setTimeout((function(_this) {
+          return function() {
+            return that.requestTerm(_this.parentNode);
+          };
+        })(this), 500);
       });
       return tag.addEventListener("contextmenu", function(event) {
-        event.preventDefault();
-        tag.remove();
+        this.remove();
         that.fillInput();
+        event.preventDefault();
         return false;
       });
     };
@@ -290,5 +291,3 @@
   });
 
 }).call(this);
-
-},{}]},{},[1])
