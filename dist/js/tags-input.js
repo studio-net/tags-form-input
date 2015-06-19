@@ -285,9 +285,4 @@
 
   })();
 
-  new Tag.guess(document.querySelectorAll("[data-role=tagsinput]"), {
-    autocomplete: "http://photon.komoot.de/api?q=%search%",
-    autofield: "name"
-  });
-
 }).call(this);
