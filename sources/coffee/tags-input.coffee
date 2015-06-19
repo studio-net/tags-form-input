@@ -131,6 +131,7 @@ window.Tag = class Tag
 				@parentNode.remove()
 				return
 
+			sessionStorage.removeItem "tags-input-autocomplete"
 			that.fillInput()
 
 		# When the user press some keys, we need to prevent from default
@@ -148,6 +149,8 @@ window.Tag = class Tag
 				if @firstChild.innerHTML
 					that.createTag()
 					return false
+
+			sessionStorage.removeItem "tags-input-autocomplete"
 
 		# On content editable change
 		tag.firstChild.addEventListener "input", (event) ->

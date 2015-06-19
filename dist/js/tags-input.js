@@ -127,6 +127,7 @@
           this.parentNode.remove();
           return;
         }
+        sessionStorage.removeItem("tags-input-autocomplete");
         return that.fillInput();
       });
       tag.addEventListener("keydown", function(event) {
@@ -142,6 +143,7 @@
             return false;
           }
         }
+        return sessionStorage.removeItem("tags-input-autocomplete");
       });
       tag.firstChild.addEventListener("input", function(event) {
         var min, range;
