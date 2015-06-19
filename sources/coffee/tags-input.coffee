@@ -257,7 +257,3 @@ window.Tag = class Tag
 		# user fetching multiple inputs
 		for element in elements
 			new Tag element, options
-
-new Tag.guess document.querySelectorAll("[data-role=tagsinput]"),
-	autocomplete : "http://photon.komoot.de/api?q=%search%"
-	autofield    : "name"

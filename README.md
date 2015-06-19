@@ -4,6 +4,8 @@ Tags-FormInput is a simple Javascript module that convert all corresponding inpu
 form to a tags list input. It's completely open source and is running under MIT
 licence. All contributions are welcome.
 
+Tags-FormInput is written in pure JS. There's no dependency.
+
 ## Installation
 
 ```bash
@@ -18,10 +20,6 @@ After bower install, add theses following lines :
 ```
 
 ## How to use
-
-Tags-FormInput is written in pure JS. There's no dependency. By default, the
-script will find every input with a `data-role="tagsinput"` and affect them to
-be tags-inputed but you can also use it on differents elements.
 
 Once you've load the javascript file, you just have to write where
 you want tags-input work (HTML5 API selector) :
