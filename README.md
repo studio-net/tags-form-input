@@ -46,15 +46,15 @@ That's all! It's pretty simple.
 ### Options
 This is the list of all availabled options :
 
-- `(bool)   tooltip      `: Show a tooltip on tag fly (default is : true)
-- `(string) tooltipText  `: Message in tooltip (default is : "Right click to delete")
-- `(char)   formSeparator`: Default separator on real form field
-- `(array)  nextTagCodes `: List of characters that create a new tag (default is
+- `tooltip` Show a tooltip on tag fly (default is : true)
+- `tooltipText` Message in tooltip (default is : "Right click to delete")
+- `formSeparator` Default separator on real form field
+- `nextTagCodes` List of characters that create a new tag (default is
   [13, 88, 9] - ENTER, COMMA and TAB)
-- `(string) autocomplete `: URL to autocomplete : the URL must provide a
-  `%search` content in order to replace by the value
-- `(string) autofield    `: The field used by autocomplete
-- `(int)    autolimit    `: Minimum-character before starts autocomplete
+- `autocomplete` URL to autocomplete : the URL must provide a
+  `%search%` content in order to replace by the value
+- `autofield` The field used by autocomplete
+- `autolimit` Minimum-character before starts autocomplete
 
 ### Example
 
