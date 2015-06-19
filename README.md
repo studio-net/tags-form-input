@@ -54,7 +54,7 @@ This is the list of all availabled options :
 - `autocomplete` URL to autocomplete : the URL must provide a
   `%search%` content in order to replace by the value
 - `autofield` The field used by autocomplete
-- `autolimit` Minimum-character before starts autocomplete
+- `automin` Minimum-character before starts autocomplete
 
 ### Example
 
