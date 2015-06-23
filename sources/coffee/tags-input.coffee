@@ -36,6 +36,7 @@ window.Tag = class Tag
 		autocomplete  : null
 		autofield     : "value"
 		automin       : 5
+		placeholder   : null
 
 	constructor : (@element, @options) ->
 		that = @
@@ -44,7 +45,8 @@ window.Tag = class Tag
 		@options = @configureOptions()
 
 		# Create the real container of all tags
-		@container = document.createElement "ul"
+		@container  = document.createElement "ul"
+		placeholder = @createPlaceHolder()
 
 		# Insert it just after the @element
 		@element.parentNode.insertBefore @container, @element.nextSibling
@@ -63,6 +65,22 @@ window.Tag = class Tag
 				return
 
 			that.createTag()
+
+		@container.addEventListener "DOMNodeInserted", (event) ->
+			placeholder = document.querySelector ".tag-input > .placeholder"
+			return if event.target is placeholder
+
+			if placeholder and that.container.children.length > 1
+				placeholder.remove()
+
+			return
+
+		@container.addEventListener "DOMNodeRemoved", (event) ->
+			if that.container.childNodes.length - 1 is 0
+				that.createPlaceHolder()
+
+			return
+
 
 		# Prevent from content editable focus on container click
 		@container.addEventListener "mousedown", (event) ->
@@ -94,6 +112,17 @@ window.Tag = class Tag
 			options[key] = property
 
 		return options
+
+	createPlaceHolder : ->
+		if @options.placeholder
+			placeholder = document.createElement "span"
+			placeholder.innerHTML = @options.placeholder
+			placeholder.classList.add "placeholder"
+
+			@container.appendChild placeholder
+			return placeholder
+
+		return null
 
 	createTag : (value) ->
 		that = @

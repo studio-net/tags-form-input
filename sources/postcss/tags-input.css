@@ -38,6 +38,13 @@ ul.tag-input.container {
 	min-height     : 25px;
 	vertical-align : middle;
 
+	span.placeholder {
+		padding : 2px 0;
+		display : inline-block;
+		margin  : 2px;
+		font-style : italic;
+	}
+
 	li.tag-input.tag {
 		color   : #FFFFFF;
 		display : inline-block;

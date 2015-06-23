@@ -43,16 +43,18 @@
       nextTagCodes: [13, 188, 9],
       autocomplete: null,
       autofield: "value",
-      automin: 5
+      automin: 5,
+      placeholder: null
     };
 
     function Tag(element1, options1) {
-      var i, len, ref, tag, tags, that;
+      var i, len, placeholder, ref, tag, tags, that;
       this.element = element1;
       this.options = options1;
       that = this;
       this.options = this.configureOptions();
       this.container = document.createElement("ul");
+      placeholder = this.createPlaceHolder();
       this.element.parentNode.insertBefore(this.container, this.element.nextSibling);
       this.container.style.position = "relative";
       this.container.style.left = 0;
@@ -65,6 +67,20 @@
           return;
         }
         return that.createTag();
+      });
+      this.container.addEventListener("DOMNodeInserted", function(event) {
+        placeholder = document.querySelector(".tag-input > .placeholder");
+        if (event.target === placeholder) {
+          return;
+        }
+        if (placeholder && that.container.children.length > 1) {
+          placeholder.remove();
+        }
+      });
+      this.container.addEventListener("DOMNodeRemoved", function(event) {
+        if (that.container.childNodes.length - 1 === 0) {
+          that.createPlaceHolder();
+        }
       });
       this.container.addEventListener("mousedown", function(event) {
         if (event.target !== that.container) {
@@ -99,6 +115,18 @@
         options[key] = property;
       }
       return options;
+    };
+
+    Tag.prototype.createPlaceHolder = function() {
+      var placeholder;
+      if (this.options.placeholder) {
+        placeholder = document.createElement("span");
+        placeholder.innerHTML = this.options.placeholder;
+        placeholder.classList.add("placeholder");
+        this.container.appendChild(placeholder);
+        return placeholder;
+      }
+      return null;
     };
 
     Tag.prototype.createTag = function(value) {
