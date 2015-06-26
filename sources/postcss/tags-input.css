@@ -38,6 +38,24 @@ ul.tag-input.container {
 	min-height     : 25px;
 	vertical-align : middle;
 
+	div.tag-input.terms {
+		position : absolute;
+		padding  : 10px;
+		border   : 1px solid #A4A4A4;
+		background : #FFF;
+		left : 0; right : 0;
+
+		& .link-term {
+			padding : 5px;
+			cursor  : pointer;
+
+			&:hover {
+				background-color : #A4A4A4;
+				color : #FFF;
+			}
+		}
+	}
+
 	span.placeholder {
 		padding : 2px 0;
 		display : inline-block;

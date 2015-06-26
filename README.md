@@ -35,7 +35,9 @@ new Tag.guess(document.querySelectorAll("your-element"), {
 	nextTagCodes  : [13, 188, 9],
 	autocomplete  : null,
 	autofield     : "value",
-	automin       : 3
+	automin       : 3,
+	autolimit     : 5,
+	placeholder   : null
 })
 ```
 
@@ -53,6 +55,8 @@ This is the list of all availabled options :
   `%search%` content in order to replace by the value
 - `autofield` The field used by autocomplete
 - `automin` Minimum-character before starts autocomplete
+- `autolimit` Limit the number of result terms
+- `placeholder` Show message on empty tags
 
 ### Example
 
@@ -62,7 +66,8 @@ new Tag.guess(document.querySelectorAll("[data-role=tagsinput]"), {
 	nextTagCodes  : [13, 188, 9],
 	autocomplete  : "http://photon.komoot.de/api?q=%search%",
 	autofield     : "value",
-	automin       : 2
+	automin       : 2,
+	autolimit     : 8
 })
 ```
 

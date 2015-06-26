@@ -26,6 +26,7 @@ window.Tag = class Tag
 	element : null
 	options : null
 	deleted : false
+	terms   : null # Represents the terms container
 	requestInstances : []
 
 	defaultOptions   :
@@ -35,7 +36,8 @@ window.Tag = class Tag
 		nextTagCodes  : [13, 188, 9] # ENTER, COMMA and TAB
 		autocomplete  : null
 		autofield     : "value"
-		automin       : 5
+		automin       : 3
+		autolimit     : 5
 		placeholder   : null
 
 	constructor : (@element, @options) ->
@@ -80,7 +82,6 @@ window.Tag = class Tag
 				that.createPlaceHolder()
 
 			return
-
 
 		# Prevent from content editable focus on container click
 		@container.addEventListener "mousedown", (event) ->
@@ -190,13 +191,11 @@ window.Tag = class Tag
 			that.clearRequests()
 
 			return if not that.options.autocomplete
-			return if @innerHTML.length % 2 isnt 1 or @innerHTML.length < min
+			return if @innerHTML.length < min
 			return if range.startOffset isnt @innerHTML.length
 			clearTimeout that.timer
 
-			that.timer = setTimeout =>
-				that.requestTerm @parentNode
-			, 500
+			that.requestTerm @parentNode
 
 		# Delete a tag on right click on it
 		tag.addEventListener "contextmenu", (event) ->
@@ -207,6 +206,9 @@ window.Tag = class Tag
 			return false
 
 	createFocus : (tag) ->
+		@terms.remove() if @terms
+		@terms = null
+
 		tag.firstChild.focus()
 
 	requestTerm : (tag) ->
@@ -218,34 +220,14 @@ window.Tag = class Tag
 		request.open "GET", permalink, true
 		request.addEventListener "readystatechange", (event) ->
 			response = event.target
-			return if response.readyState isnt 4 or response.status isnt 200
+			return if response.readyState isnt 4
+			return if response.status isnt 200
 
-			if response.readyState is 4
-				if response.status is 200
-					data = JSON.parse response.responseText
-					term = that.autocomplete data, value
-					term = term[0]
+			data  = JSON.parse response.responseText
+			terms = that.autocomplete data, value
 
-					return if term is undefined
-
-					value = sessionStorage.getItem "tags-input-value"
-					sessionStorage.setItem "tags-input-autocomplete", term
-
-					term  = term.substr value.length
-					child = tag.firstChild
-
-					child.innerHTML = child.innerHTML + term.toLowerCase()
-
-					try
-						# Create selection on added content
-						range = document.createRange()
-						range.setStart child.firstChild, value.length
-						range.setEnd   child.firstChild, value.length + term.length
-
-						selection = window.getSelection()
-						selection.removeAllRanges()
-						selection.addRange range
-					catch e
+			# Show all terms
+			that.showTerms terms, tag
 
 		request.send null
 		@requestInstances.push request
@@ -255,8 +237,6 @@ window.Tag = class Tag
 		if @requestInstances.length > 0
 			for instance in @requestInstances
 				instance.abort()
-				instance.removeEventListener "readystatechange"
-
 				@requestInstances.slice @requestInstances.indexOf(instance), 1
 
 	searchTerm : (value, search) ->
@@ -281,7 +261,37 @@ window.Tag = class Tag
 			continue if value not instanceof Array
 			terms = terms.concat @searchTerm(value, search)
 
-		return terms.slice 0, 1
+		return terms.slice 0, @options.autolimit
+
+	showTerms : (terms, tag) ->
+		that = @
+
+		if not @terms
+			@terms = document.createElement "div"
+			@terms.classList.add "tag-input"
+			@terms.classList.add "terms"
+
+			@container.appendChild @terms
+
+		# Remove all childs (faster way) if we're on the same tag
+		while @terms.firstChild
+			@terms.removeChild @terms.firstChild
+
+		for term in terms
+			node = document.createElement "div"
+			node.classList.add "tag-input"
+			node.classList.add "link-term"
+			node.innerHTML = term
+
+			node.addEventListener "click", (event) ->
+				# Replace tag with new value
+				tag.firstChild.innerHTML = event.target.innerHTML
+
+				# Remove the terms container
+				that.terms.remove()
+				that.terms = null
+
+			@terms.appendChild node
 
 	fillInput : ->
 		# Fill the given input (element) with tags

@@ -34,6 +34,8 @@
 
     Tag.prototype.deleted = false;
 
+    Tag.prototype.terms = null;
+
     Tag.prototype.requestInstances = [];
 
     Tag.prototype.defaultOptions = {
@@ -43,7 +45,8 @@
       nextTagCodes: [13, 188, 9],
       autocomplete: null,
       autofield: "value",
-      automin: 5,
+      automin: 3,
+      autolimit: 5,
       placeholder: null
     };
 
@@ -182,18 +185,14 @@
         if (!that.options.autocomplete) {
           return;
         }
-        if (this.innerHTML.length % 2 !== 1 || this.innerHTML.length < min) {
+        if (this.innerHTML.length < min) {
           return;
         }
         if (range.startOffset !== this.innerHTML.length) {
           return;
         }
         clearTimeout(that.timer);
-        return that.timer = setTimeout((function(_this) {
-          return function() {
-            return that.requestTerm(_this.parentNode);
-          };
-        })(this), 500);
+        return that.requestTerm(this.parentNode);
       });
       return tag.addEventListener("contextmenu", function(event) {
         this.remove();
@@ -204,6 +203,10 @@
     };
 
     Tag.prototype.createFocus = function(tag) {
+      if (this.terms) {
+        this.terms.remove();
+      }
+      this.terms = null;
       return tag.firstChild.focus();
     };
 
@@ -215,36 +218,17 @@
       request = new XMLHttpRequest();
       request.open("GET", permalink, true);
       request.addEventListener("readystatechange", function(event) {
-        var child, data, e, range, response, selection, term;
+        var data, response, terms;
         response = event.target;
-        if (response.readyState !== 4 || response.status !== 200) {
+        if (response.readyState !== 4) {
           return;
         }
-        if (response.readyState === 4) {
-          if (response.status === 200) {
-            data = JSON.parse(response.responseText);
-            term = that.autocomplete(data, value);
-            term = term[0];
-            if (term === void 0) {
-              return;
-            }
-            value = sessionStorage.getItem("tags-input-value");
-            sessionStorage.setItem("tags-input-autocomplete", term);
-            term = term.substr(value.length);
-            child = tag.firstChild;
-            child.innerHTML = child.innerHTML + term.toLowerCase();
-            try {
-              range = document.createRange();
-              range.setStart(child.firstChild, value.length);
-              range.setEnd(child.firstChild, value.length + term.length);
-              selection = window.getSelection();
-              selection.removeAllRanges();
-              return selection.addRange(range);
-            } catch (_error) {
-              e = _error;
-            }
-          }
+        if (response.status !== 200) {
+          return;
         }
+        data = JSON.parse(response.responseText);
+        terms = that.autocomplete(data, value);
+        return that.showTerms(terms, tag);
       });
       request.send(null);
       return this.requestInstances.push(request);
@@ -258,7 +242,6 @@
         for (i = 0, len = ref.length; i < len; i++) {
           instance = ref[i];
           instance.abort();
-          instance.removeEventListener("readystatechange");
           results.push(this.requestInstances.slice(this.requestInstances.indexOf(instance), 1));
         }
         return results;
@@ -297,7 +280,36 @@
         }
         terms = terms.concat(this.searchTerm(value, search));
       }
-      return terms.slice(0, 1);
+      return terms.slice(0, this.options.autolimit);
+    };
+
+    Tag.prototype.showTerms = function(terms, tag) {
+      var i, len, node, results, term, that;
+      that = this;
+      if (!this.terms) {
+        this.terms = document.createElement("div");
+        this.terms.classList.add("tag-input");
+        this.terms.classList.add("terms");
+        this.container.appendChild(this.terms);
+      }
+      while (this.terms.firstChild) {
+        this.terms.removeChild(this.terms.firstChild);
+      }
+      results = [];
+      for (i = 0, len = terms.length; i < len; i++) {
+        term = terms[i];
+        node = document.createElement("div");
+        node.classList.add("tag-input");
+        node.classList.add("link-term");
+        node.innerHTML = term;
+        node.addEventListener("click", function(event) {
+          tag.firstChild.innerHTML = event.target.innerHTML;
+          that.terms.remove();
+          return that.terms = null;
+        });
+        results.push(this.terms.appendChild(node));
+      }
+      return results;
     };
 
     Tag.prototype.fillInput = function() {
